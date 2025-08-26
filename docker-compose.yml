@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    # Put your env file at repo root as .env (or change the path)
+    env_file:
+      - ./.env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./obj_meta_db:/app/obj_meta_db
+    restart: unless-stopped
+
+  ui:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8081:80"
+    depends_on:
+      - api
+    restart: unless-stopped

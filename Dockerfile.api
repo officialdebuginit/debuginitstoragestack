@@ -1,0 +1,28 @@
+# Runtime-only image for the compiled binary
+FROM debian:bookworm-slim
+
+# Certs for outbound HTTPS, minimal base
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates tzdata \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy your compiled backend binary and make it executable
+# If your binary has a different name, adjust both the COPY and CMD lines.
+COPY DebugInitObjectStorage /usr/local/bin/object_store
+RUN chmod +x /usr/local/bin/object_store
+
+# Create data locations that match your .env defaults
+RUN mkdir -p /app/data /app/obj_meta_db
+
+# Sensible defaults (your .env will override these at runtime)
+ENV HOST=0.0.0.0 \
+    BIND_PORT=8080 \
+    BIND_ADDR=0.0.0.0:8080 \
+    PUBLIC_BASE_URL=http://0.0.0.0:8080 \
+    RUST_LOG=info
+
+EXPOSE 8080
+
+# Run the server
+CMD ["/usr/local/bin/object_store"]
